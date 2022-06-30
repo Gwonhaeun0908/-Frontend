@@ -1,0 +1,25 @@
+#title {
+  display: flex;
+  justify-content: space-around;
+}
+
+.center {
+  display: flex;
+  justify-content: space-evenly;
+  margin-right: 500px;
+  align-items: center;
+}
+
+.center > div > img {
+  width: 500px;
+  height: 500px;
+}
+
+.img0 {
+  text-align: left;
+  margin-left: 1000px;
+}
+.img1 {
+  text-align: right;
+  margin-right: 500px;
+}
