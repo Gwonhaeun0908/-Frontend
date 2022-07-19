@@ -11,7 +11,14 @@
 			heightNum:5, //브라우저 높이의 5배로 scrollHeight 세팅
 			scrollHeight: 0,
 			objs: {
-				container: document.querySelector('#scroll-section-0')
+				container: document.querySelector('#scroll-section-0'),
+				messageA: document.querySelector('#scroll-section-0 .main-message.a'),
+				messageB: document.querySelector('#scroll-section-0 .main-message.b'),
+				messageC: document.querySelector('#scroll-section-0 .main-message.c'),
+				messageD: document.querySelector('#scroll-section-0 .main-message.d')
+			},
+			values: {
+				messageA_opacity: [200, 900]
 			}
 		},
 		{
@@ -50,13 +57,52 @@
 			sceneInfo[i].objs.container.style.height = '${sceneInfo[i].scrollHegiht}px';
 		}
 
+		yOffset = window.pageYOffset;
+
 		let totalScrollHeight = 0;
 		for(let i = 0; i <sceneInfo.length; i++) {
 			totalScrollHeight += sceneInfo[i].scrollHeight;
-			if(totalScrollHeight >= pageYOffset) {
+			if(totalScrollHeight >= yOffset) {
 				currentScene = i;
 				break;
 			}
+		}
+		document.body.setAttribute('id', 'show-scroll-section-${currentScene}');
+	}
+
+	function calcValues(values, currentYOffset) {
+		let rv;
+		//현재 씬(스크롤색션)에서 스크롤된 범위를 비율로 구하기
+		let scrollRatio = currentYOffset / sceneInfo[currentScene].scrollHeight;
+		
+		rv = parseInt(scrollRatio * (values[1] - values[0] + values[0]) );
+
+		return rv;
+	}
+
+	function playAnimation() {
+		const objs = sceneInfo[currentScene].objs;
+		const values = sceneInfo[currentScene].values;
+		const currentYOffset = yOffset - prevScrollHeight;
+
+		switch (currentScene) {
+			case 0:
+				//console.log('0 play');
+				let messageA_opacity_in =  calcValues(values.messageA_opacity, currentYOffset);
+				objs.messageA.style.opacity = messageA_opacity_in;
+				break;
+			case 1:
+				//console.log('1 play');
+
+				break;
+			case 2:
+				//console.log('2 play');
+
+				break;
+			case 3:
+				//console.log('3 play');
+
+				break;
 		}
 	}
 
@@ -68,14 +114,14 @@
 
 		if(yOffset > prevScrollHeight + sceneInfo[currentScene].scrollHeight) {
 			currentScene++;
+			document.body.setAttribute('id', 'show-scroll-section-${currentScene}');
 		}
 
 		if(yOffset < prevScrollHeight) {
 			if(currentScene === 0) return; //브라우저 바운스 효과로 인해 마이너스가 되는 것을 방지(모바일)
 			currentScene--;
+			document.body.setAttribute('id', 'show-scroll-section-${currentScene}');
 		}
-
-		document.body.setAttribute('id', 'show-scroll-section-${currentScene}');
 	}
 
 	window.addEventListener('resize', setLayout);
