@@ -64,13 +64,13 @@ const render = () => {
         <div class="col-lg-8">
             <h2>${item.title}</h2>
             <p>
-                ${item.summary}
+                ${item.summary == null || item.summary == "" ? "내용없음" : item.summary.length > 200 ? item.summary.substring(0, 200) + "..." : item.summary}
             </p>
             <div>
                 ${item.rights} ${item.published_date}
             </div>
             <div>${news.rights || "no source"}  
-            ${moment(news.published_date).fromNow()}
+            ${moment(item.published_date).fromNow()}
             </div>
         </div>
     </div>`;
@@ -83,19 +83,10 @@ const render = () => {
 searchButton.addEventListener("click", getNewsByKeyword);
 getLatesNews();
 
-const openSearchBox = () => {
-  let inputArea = document.getElementById("input-area");
-  if (inputArea.style.display === "inline") {
-    inputArea.style.display = "none";
-  } else {
-    inputArea.style.display = "inline";
-  }
-};
+// const openNav = () => {
+//   document.getElementById("mySidenav").style.width = "250px";
+// };
 
-const openNav = () => {
-  document.getElementById("mySidenav").style.width = "250px";
-};
-
-const closeNav = () => {
-  document.getElementById("mySidenav").style.width = "0";
-};
+// const closeNav = () => {
+//   document.getElementById("mySidenav").style.width = "0";
+// };
