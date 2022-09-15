@@ -7,24 +7,35 @@ menus.forEach((menu) =>
 let searchButton = document.getElementById("search-button");
 let url;
 
-const getNews =  async () => {
+const getNews = async () => {
+  try {
     let header = new Headers({
-        "x-api-key": "rKMtkyXEHP4cODwLczm4TQKW4ohqBxbBq-313hdvipw",
-      });
+      "x-api-key": "rKMtkyXEHP4cODwLczm4TQKW4ohqBxbBq-313hdvipw",
+    });
 
-      let response = await fetch(url, { headers: header });
-      let data = await response.json();
+    let response = await fetch(url, { headers: header });
+    let data = await response.json();
+    if (response.status == 200) {
+      if (data.total_hits == 0) {
+        throw new Error("검색된 결과값이 없습니다.");
+      }
       news = data.articles;
       console.log(news);
-    
       render();
-}
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (error) {
+    console.log("잡힌 에러는", error.message);
+    errorRender(error.message);
+  }
+};
 
 const getLatesNews = async () => {
   url = new URL(
     `https://api.newscatcherapi.com/v2/latest_headlines?countries=KR&topic=sport&page_size=10`
   );
-    getNews();
+  getNews();
 };
 
 const getNewsByTopic = async (event) => {
@@ -47,7 +58,7 @@ const getNewsByKeyword = async () => {
   url = new URL(
     `https://api.newscatcherapi.com/v2/search?q=${keyword}&page_size=10`
   );
-    getNews();
+  getNews();
 };
 
 const notImg =
@@ -64,7 +75,13 @@ const render = () => {
         <div class="col-lg-8">
             <h2>${item.title}</h2>
             <p>
-                ${item.summary == null || item.summary == "" ? "내용없음" : item.summary.length > 200 ? item.summary.substring(0, 200) + "..." : item.summary}
+                ${
+                  item.summary == null || item.summary == ""
+                    ? "내용없음"
+                    : item.summary.length > 200
+                    ? item.summary.substring(0, 200) + "..."
+                    : item.summary
+                }
             </p>
             <div>
                 ${item.rights} ${item.published_date}
@@ -78,6 +95,13 @@ const render = () => {
     .join("");
 
   document.getElementById("news-board").innerHTML = newsHTML;
+};
+
+const errorRender = (message) => {
+  let errorHTML = `<div class="alert alert-danger text-center" role="alert">
+  ${message}
+</div>`;
+  document.getElementById("news-board").innerHTML = errorHTML;
 };
 
 searchButton.addEventListener("click", getNewsByKeyword);
