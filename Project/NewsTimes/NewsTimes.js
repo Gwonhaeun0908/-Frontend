@@ -14,7 +14,7 @@ const getNews = async () => {
     let header = new Headers({
       "x-api-key": "rKMtkyXEHP4cODwLczm4TQKW4ohqBxbBq-313hdvipw",
     });
-
+    url.searchParams.set('page', page);
     let response = await fetch(url, { headers: header });
     let data = await response.json();
 
@@ -28,6 +28,7 @@ const getNews = async () => {
       page = data.page;
       console.log(news);
       render();
+      pagenation();
     } else {
       throw new Error(data.message);
     }
@@ -81,20 +82,18 @@ const render = () => {
         <div class="col-lg-8">
             <h2>${item.title}</h2>
             <p>
-                ${
-                  item.summary == null || item.summary == ""
-                    ? "내용없음"
-                    : item.summary.length > 200
-                    ? item.summary.substring(0, 200) + "..."
-                    : item.summary
-                }
+              ${item.summary == null || item.summary == "" 
+              ? "내용없음" 
+              : item.summary.length > 200 
+              ? item.summary.substring(0, 200) + "..." 
+              : item.summary}
             </p>
             <div>
                 ${item.rights} ${item.published_date}
             </div>
-            // <div>${news.rights || "no source"}  
-            // {moment(item.published_date).fromNow()}
-            // </div>
+            <div>
+                ${news.rights}  
+            </div>
         </div>
     </div>`;
     })
@@ -111,22 +110,42 @@ const errorRender = (message) => {
 };
 
 const pagenation = () => {
-  let pagenationHTML = ``
+  let pagenationHTML = ``;
   //total_page
   //page
   //page group
-  let pagegroup = Math.ceil(page/5)
+  let pageGroup = Math.ceil(page / 5);
   //last
-  let last = pageGroup * 5
+  let last = pageGroup * 5;
   //first
-  let first = last * - 4
+  let first = last - 4;
   //first ~ last 페이지 프린트
 
-  for(let i = 0; i <= last; i++) {
-    pagenationHTML += ` <li class="page-item"><a class="page-link" href="#">${i}</a></li>`
+  pagenationHTML = ` <li class="page-item">
+  <a class="page-link" href="#" aria-label="Previous" onclick = "moveToPage(${page - 1})>
+    <span aria-hidden="true">&lt;</span>
+  </a>
+</li>`;
+
+  for(let i = first; i <= last; i++) {
+    pagenationHTML += `<li class="page-item" ${page == i ? "active" : ""}>
+    <a class="page-link" href="#" onclick = "moveToPage(${i})">${i}</a></li>`
   }
-  document.querySelectorAll(".pagenation").innerHTML = pagenationHTML;
+
+  pagenationHTML += ` <li class="page-item">
+  <a class="page-link" href="#" onclick = "moveToPage(${page + 1}) aria-label="Next">
+    <span aria-hidden="true">&gt;</span>
+  </a>
+</li>`;
+
+  document.querySelector(".pagination").innerHTML =  pagenationHTML;
 };
+
+const moveToPage = (pageNum) => {
+  page = pageNum;
+
+  getNews();
+}
 
 searchButton.addEventListener("click", getNewsByKeyword);
 getLatesNews();
