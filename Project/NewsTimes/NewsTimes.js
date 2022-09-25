@@ -20,9 +20,13 @@ const getNews = async () => {
 
     if (response.status == 200) {
       if (data.total_hits == 0) {
+        console.log("A",data);
+        page = 0;
+        total_pages = 0;
+        renderPagenation();
         throw new Error("검색된 결과값이 없습니다.");
       }
-      console.log("내가 받는 데이터",data);
+      console.log("B",data);
       news = data.articles;
       total_pages = data.total_pages;
       page = data.page;
@@ -30,15 +34,22 @@ const getNews = async () => {
       render();
       pagenation();
     } else {
+      page = 0;
+      total_pages = 0;
+      pagenation();
       throw new Error(data.message);
     }
   } catch (error) {
     console.log("잡힌 에러는", error.message);
     errorRender(error.message);
+    page = 0;
+    total_pages = 0;
+    Pagenation();
   }
 };
 
 const getLatesNews = async () => {
+  page = 1; // 새로운거 search마다 1로 리셋
   url = new URL(
     `https://api.newscatcherapi.com/v2/latest_headlines?countries=KR&topic=sport&page_size=10`
   );
@@ -47,6 +58,7 @@ const getLatesNews = async () => {
 
 const getNewsByTopic = async (event) => {
   let topic = event.target.textContent.toLowerCase();
+  page = 1;
   url = new URL(
     `https://api.newscatcherapi.com/v2/latest_headlines?countries=KR&page_size=10&topic=${topic}`
   );
@@ -54,19 +66,13 @@ const getNewsByTopic = async (event) => {
 };
 
 const getNewsByKeyword = async () => {
-  //1.검색 키워드 읽어오기
-  //2.url에 검색 키워드 부치기
-  //3.헤더준비
-  //4.url 부르기
-  //5.데이터 가져오기
-  //6.데이터 보여주기
-
   let keyword = document.getElementById("search-input").value;
+  page = 1;
   url = new URL(
     `https://api.newscatcherapi.com/v2/search?q=${keyword}&page_size=10`
   );
   getNews();
-};
+};    
 
 const notImg =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqEWgS0uxxEYJ0PsOb2OgwyWvC0Gjp8NUdPw&usqp=CAU";
@@ -77,7 +83,8 @@ const render = () => {
     .map((item) => {
       return `<div class="row news">
         <div class="col-lg-4">
-      <img class="news-img-size" src="${item.media ? item.media : notImg}"/>  
+          <img class="news-img-size" 
+            src="${item.media ? item.media : notImg}"/>  
         </div>
         <div class="col-lg-8">
             <h2>${item.title}</h2>
@@ -88,12 +95,9 @@ const render = () => {
               ? item.summary.substring(0, 200) + "..." 
               : item.summary}
             </p>
-            <div>
-                ${item.rights} ${item.published_date}
-            </div>
-            <div>
-                ${news.rights}  
-            </div>
+            <div>${news.rights || "no source"}  ${moment(
+              news.published_date
+            ).fromNow()}</div>
         </div>
     </div>`;
     })
@@ -111,49 +115,52 @@ const errorRender = (message) => {
 
 const pagenation = () => {
   let pagenationHTML = ``;
-  //total_page
-  //page
-  //page group
   let pageGroup = Math.ceil(page / 5);
-  //last
   let last = pageGroup * 5;
-  //first
-  let first = last - 4;
-  //first ~ last 페이지 프린트
-
-  pagenationHTML = ` <li class="page-item">
-  <a class="page-link" href="#" aria-label="Previous" onclick = "moveToPage(${page - 1})>
-    <span aria-hidden="true">&lt;</span>
-  </a>
-</li>`;
+  if(last > total_pages) {
+    //마지막 그룹이 5개 이하이면
+    last = total_pages;
+  }
+  let first = last - 4 <= 0 ? 1 : last - 4; //첫그룹이 5이하면
+  if(first >= 6) {
+    pagenationHTML = `<li class="page-item" onclick="pageClick(1)">
+                        <a class="page-link" href='#js-bottom'>&lt;&lt;</a>
+                      </li>
+                      <li class="page-item" onclick="pageClick(${page - 1})">
+                        <a class="page-link" href='#js-bottom'>&lt;</a>
+                      </li>`;
+  }
 
   for(let i = first; i <= last; i++) {
-    pagenationHTML += `<li class="page-item" ${page == i ? "active" : ""}>
+    pagenationHTML += `<li class="page-item ${i == page ? "active" : ""}">
     <a class="page-link" href="#" onclick = "moveToPage(${i})">${i}</a></li>`
   }
 
-  pagenationHTML += ` <li class="page-item">
-  <a class="page-link" href="#" onclick = "moveToPage(${page + 1}) aria-label="Next">
-    <span aria-hidden="true">&gt;</span>
-  </a>
-</li>`;
+  if(last < total_pages) {
+    pagenationHTML += `<li class="page-item" onclick="pageClick(${page + 1})">
+    <a  class="page-link" href='#js-program-detail-bottom'>&gt;</a>
+    </li>
+    <li class="page-item" onclick="pageClick(${total_pages })">
+    <a class="page-link" href='#js-bottom'>&gt;&gt;</a>
+    </li>`;
+  }
 
   document.querySelector(".pagination").innerHTML =  pagenationHTML;
 };
 
 const moveToPage = (pageNum) => {
   page = pageNum;
-
+  window.scrollTo({ top: 0, behavior: 'smooth'});
   getNews();
 }
 
 searchButton.addEventListener("click", getNewsByKeyword);
 getLatesNews();
 
-// const openNav = () => {
-//   document.getElementById("mySidenav").style.width = "250px";
-// };
+const openNav = () => {
+  document.getElementById("mySidenav").style.width = "250px";
+};
 
-// const closeNav = () => {
-//   document.getElementById("mySidenav").style.width = "0";
-// };
+const closeNav = () => {
+  document.getElementById("mySidenav").style.width = "0";
+};
